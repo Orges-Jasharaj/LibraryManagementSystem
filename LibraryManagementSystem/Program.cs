@@ -1,4 +1,10 @@
 
+using LibraryManagementSystem.Data;
+using LibraryManagementSystem.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
+
 namespace LibraryManagementSystem
 {
     public class Program
@@ -8,6 +14,16 @@ namespace LibraryManagementSystem
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.AddScoped<IUserEmailStore<User>>(sp =>
+                (IUserEmailStore<User>)sp.GetRequiredService<IUserStore<User>>());
+            
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
