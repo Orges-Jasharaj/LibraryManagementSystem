@@ -3,6 +3,7 @@ using LibraryManagementSystem.Data;
 using LibraryManagementSystem.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System;
 
 namespace LibraryManagementSystem
@@ -23,7 +24,16 @@ namespace LibraryManagementSystem
 
             builder.Services.AddScoped<IUserEmailStore<User>>(sp =>
                 (IUserEmailStore<User>)sp.GetRequiredService<IUserStore<User>>());
-            
+
+            builder.Host.UseSerilog((context, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(context.Configuration);
+
+            });
+
+            //Test serilog
+            //Log.Warning("Application is starting up...");
+
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
