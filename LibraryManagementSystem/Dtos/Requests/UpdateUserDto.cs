@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace LibraryManagementSystem.Dtos.Requests
 {
     public class UpdateUserDto

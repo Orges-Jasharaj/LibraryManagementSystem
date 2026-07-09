@@ -1,6 +1,7 @@
 
 using LibraryManagementSystem.Data;
 using LibraryManagementSystem.Dtos.System;
+using LibraryManagementSystem.Middleware;
 using LibraryManagementSystem.Models;
 using LibraryManagementSystem.Services.Implementation;
 using LibraryManagementSystem.Services.Interface;
@@ -115,6 +116,8 @@ namespace LibraryManagementSystem
             }
 
             app.UseHttpsRedirection();
+
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseAuthentication();
             app.UseAuthorization();
