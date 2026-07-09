@@ -6,7 +6,10 @@ namespace LibraryManagementSystem.Models
     {
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        public DateTime DateOfBirth { get; set; } 
+        public DateTime DateOfBirth { get; set; }
+        public bool isActive { get; set; } = true;
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Book> Books { get; set; } = new List<Book>();
     }
