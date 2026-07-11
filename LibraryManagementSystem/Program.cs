@@ -98,6 +98,10 @@ namespace LibraryManagementSystem
 
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IBookService, BookService>();
+
+
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddAuthorization();
 
