@@ -99,7 +99,7 @@ namespace LibraryManagementSystem.Services.Implementation
             }
         }
 
-        public async Task<ResponseDto<List<BookDto>>> GetAllBooksAsync()
+        public async Task<ResponseDto<PaginationResponseDto<BookDto>>> GetAllBooksAsync(PaginationRequestDto request)
         {
             try
             {
@@ -111,7 +111,12 @@ namespace LibraryManagementSystem.Services.Implementation
                     query = query.Where(b => b.UserId == userId);
                 }
 
+                var totalCount = await query.CountAsync();
+
                 var books = await query
+                    .Skip(
+                        (request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
                     .Select(b => new BookDto
                     {
                         Id = b.Id,
@@ -122,14 +127,26 @@ namespace LibraryManagementSystem.Services.Implementation
                     })
                     .ToListAsync();
 
-                return ResponseDto<List<BookDto>>.SuccessResponse(books,"Books retrieved successfully.");
+                var response = new PaginationResponseDto<BookDto>
+                {
+                    Data = books,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    TotalCount = totalCount,
+                    TotalPages = (int)Math.Ceiling(
+                        totalCount / (double)request.PageSize)
+                };
+
+                return ResponseDto<PaginationResponseDto<BookDto>>
+                    .SuccessResponse(response,"Books retrieved successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,"Error retrieving books.");
-                return ResponseDto<List<BookDto>>.Failure("An error occurred while retrieving books.");
+                return ResponseDto<PaginationResponseDto<BookDto>>.Failure("An error occurred while retrieving books.");
             }
         }
+        
 
         public async Task<ResponseDto<BookDto>> GetBookByIdAsync(Guid bookId)
         {

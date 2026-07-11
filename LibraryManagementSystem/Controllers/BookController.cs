@@ -31,9 +31,12 @@ namespace LibraryManagementSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllBooks()
+        public async Task<IActionResult> GetBooks([FromQuery] PaginationRequestDto request)
         {
-            return Ok(await _bookService.GetAllBooksAsync());
+            var result = await _bookService
+                .GetAllBooksAsync(request);
+
+            return Ok(result);
         }
 
         [HttpPut("{bookId}")]
