@@ -20,15 +20,16 @@ namespace LibraryManagementSystem.Controllers
             _logger = logger;
         }
 
-        [HttpGet("users")]
         [Authorize(Roles = RoleTypes.Admin)]
-        public async Task<IActionResult> GetAllUsers()
+        [HttpGet("GetAllUsers")]
+        public async Task<IActionResult> GetAllUsers(
+        [FromQuery] PaginationRequestDto request)
         {
-            var response = await _userService.GetAllUsersAsync(User);
-            if (!response.Success)
-                return BadRequest(response);
+            var result = await _userService.GetAllUsersAsync(
+                User,
+                request);
 
-            return Ok(response);
+            return Ok(result);
         }
 
 

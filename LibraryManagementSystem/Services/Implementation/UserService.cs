@@ -190,23 +190,38 @@ namespace LibraryManagementSystem.Services.Implementation
             }
         }
 
-        public async Task<ResponseDto<List<UserDto>>> GetAllUsersAsync(ClaimsPrincipal? currentUser)
+        public async Task<ResponseDto<PaginationResponseDto<UserDto>>> GetAllUsersAsync(
+            ClaimsPrincipal? currentUser,
+            PaginationRequestDto request)
         {
             try
             {
                 IQueryable<User> query = _appDbContext.Users;
 
-                if (currentUser != null && (currentUser.IsInRole(RoleTypes.Admin)))
+
+                if (currentUser != null && currentUser.IsInRole(RoleTypes.Admin))
                 {
                     query = query.IgnoreQueryFilters();
                 }
 
-                var usersList = await query.ToListAsync();
+
+                var totalCount = await query.CountAsync();
+
+
+                var usersList = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToListAsync();
+
+
                 var usersDto = new List<UserDto>();
+
 
                 foreach (var user in usersList)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
+
+
                     usersDto.Add(new UserDto
                     {
                         Id = user.Id,
@@ -220,12 +235,32 @@ namespace LibraryManagementSystem.Services.Implementation
                     });
                 }
 
-                return ResponseDto<List<UserDto>>.SuccessResponse(usersDto, "Users retrieved successfully");
+
+                var response = new PaginationResponseDto<UserDto>
+                {
+                    Data = usersDto,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    TotalCount = totalCount,
+                    TotalPages = (int)Math.Ceiling(
+                        totalCount / (double)request.PageSize)
+                };
+
+
+                return ResponseDto<PaginationResponseDto<UserDto>>
+                    .SuccessResponse(
+                        response,
+                        "Users retrieved successfully");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while retrieving users");
-                return ResponseDto<List<UserDto>>.Failure("An error occurred while retrieving users");
+                _logger.LogError(ex,
+                    "An error occurred while retrieving users");
+
+
+                return ResponseDto<PaginationResponseDto<UserDto>>
+                    .Failure(
+                        "An error occurred while retrieving users");
             }
         }
 
