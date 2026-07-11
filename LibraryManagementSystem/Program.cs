@@ -3,6 +3,7 @@ using LibraryManagementSystem.Data;
 using LibraryManagementSystem.Dtos.System;
 using LibraryManagementSystem.Middleware;
 using LibraryManagementSystem.Models;
+using LibraryManagementSystem.Seed;
 using LibraryManagementSystem.Services.Implementation;
 using LibraryManagementSystem.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -111,6 +112,7 @@ namespace LibraryManagementSystem
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+            SeedData.InitializeAsync(app.Services).GetAwaiter().GetResult();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
