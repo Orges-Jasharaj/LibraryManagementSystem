@@ -191,12 +191,13 @@ namespace LibraryManagementSystem.Services.Implementation
         }
 
         public async Task<ResponseDto<PaginationResponseDto<UserDto>>> GetAllUsersAsync(
-            ClaimsPrincipal? currentUser,
-            PaginationRequestDto request)
+        ClaimsPrincipal? currentUser,
+        PaginationRequestDto request)
         {
             try
             {
-                IQueryable<User> query = _appDbContext.Users;
+                IQueryable<User> query = _appDbContext.Users
+                    .AsNoTracking();
 
 
                 if (currentUser != null && currentUser.IsInRole(RoleTypes.Admin))
@@ -209,31 +210,28 @@ namespace LibraryManagementSystem.Services.Implementation
 
 
                 var usersList = await query
+                    .OrderBy(x => x.CreatedAt)
                     .Skip((request.PageNumber - 1) * request.PageSize)
                     .Take(request.PageSize)
                     .ToListAsync();
 
 
-                var usersDto = new List<UserDto>();
-
-
-                foreach (var user in usersList)
+                var usersDto = (await Task.WhenAll(usersList.Select(async user =>
                 {
                     var roles = await _userManager.GetRolesAsync(user);
 
-
-                    usersDto.Add(new UserDto
+                    return new UserDto
                     {
                         Id = user.Id,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
-                        Email = user.Email,
                         DateOfBirth = user.DateOfBirth,
+                        Email = user.Email,
                         isActive = user.isActive,
                         Roles = roles.ToList(),
                         CreatedAt = user.CreatedAt
-                    });
-                }
+                    };
+                }))).ToList();
 
 
                 var response = new PaginationResponseDto<UserDto>
@@ -256,7 +254,6 @@ namespace LibraryManagementSystem.Services.Implementation
             {
                 _logger.LogError(ex,
                     "An error occurred while retrieving users");
-
 
                 return ResponseDto<PaginationResponseDto<UserDto>>
                     .Failure(
@@ -286,39 +283,46 @@ namespace LibraryManagementSystem.Services.Implementation
         public async Task<ResponseDto<LoginResponseDto>> LoginAsync(LoginDto loginDto)
         {
             var userExists = await _userManager.FindByEmailAsync(loginDto.Email);
+
             if (userExists == null)
             {
                 return ResponseDto<LoginResponseDto>.Failure("User does not exist");
             }
-            var result = await _signInManager.PasswordSignInAsync(userExists, loginDto.Password, false, false);
-            if (result.Succeeded)
+
+            var result = await _signInManager.CheckPasswordSignInAsync(
+                userExists,
+                loginDto.Password,
+                lockoutOnFailure: false);
+
+            if (!result.Succeeded)
             {
-                var roles = await _userManager.GetRolesAsync(userExists);
-
-
-                var token = _tokenService.GenerateAccessToken(userExists, roles.ToList());
-                var refreshToken = _tokenService.GenerateRrefreshToken();
-                userExists.RefreshToken = refreshToken.RefreshToken;
-                userExists.RefreshTokenExpiryTime = refreshToken.RefreshTokenExpiryDate;
-
-                await _userManager.UpdateAsync(userExists);
-
-                var rolesList = roles.ToList();
-                var loginResponse = new LoginResponseDto
-                {
-                    DisplayName = $"{userExists.FirstName} {userExists.LastName}",
-                    Email = userExists.Email,
-                    AccessToken = token,
-                    RefreshToken = refreshToken.RefreshToken,
-                    RefreshTokenExpiryTime = refreshToken.RefreshTokenExpiryDate,
-                    Roles = rolesList
-                };
-
-                return ResponseDto<LoginResponseDto>.SuccessResponse(loginResponse, "Login successful");
-
+                return ResponseDto<LoginResponseDto>.Failure("Login failed, please check your credentials");
             }
 
-            return ResponseDto<LoginResponseDto>.Failure("Login failed, please check your credentials");
+            var roles = await _userManager.GetRolesAsync(userExists);
+
+            var token = _tokenService.GenerateAccessToken(userExists, roles.ToList());
+
+            var refreshToken = _tokenService.GenerateRrefreshToken();
+
+            userExists.RefreshToken = refreshToken.RefreshToken;
+            userExists.RefreshTokenExpiryTime = refreshToken.RefreshTokenExpiryDate;
+
+            await _userManager.UpdateAsync(userExists);
+
+            var loginResponse = new LoginResponseDto
+            {
+                DisplayName = $"{userExists.FirstName} {userExists.LastName}",
+                Email = userExists.Email!,
+                AccessToken = token,
+                RefreshToken = refreshToken.RefreshToken,
+                RefreshTokenExpiryTime = refreshToken.RefreshTokenExpiryDate,
+                Roles = roles.ToList()
+            };
+
+            return ResponseDto<LoginResponseDto>.SuccessResponse(
+                loginResponse,
+                "Login successful");
         }
 
         public async Task<ResponseDto<bool>> UpdateUserAsync(string userId, UpdateUserDto userDto)
@@ -420,8 +424,6 @@ namespace LibraryManagementSystem.Services.Implementation
             return ResponseDto<LoginResponseDto>.SuccessResponse(loginResponse, "Token refreshed successfully");
 
         }
-
-
 
         public async Task<ResponseDto<bool>> CreateUserWithRoleAsync(CreateUserDto createUserDto, string role)
         {
