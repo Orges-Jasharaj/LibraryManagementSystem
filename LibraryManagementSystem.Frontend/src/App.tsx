@@ -1,14 +1,20 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { AdminRoute } from './components/layout/AdminRoute';
+import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DashboardPage } from './pages/DashboardPage';
+import { AdminBooksPage } from './pages/admin/AdminBooksPage';
+import { AdminOverviewPage } from './pages/admin/AdminOverviewPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { LibraryPage } from './pages/user/LibraryPage';
+import { getHomeRoute } from './utils/routing';
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  const { isAuthenticated, user } = useAuth();
+  if (isAuthenticated && user) {
+    return <Navigate to={getHomeRoute(user.roles)} replace />;
   }
   return <>{children}</>;
 }
@@ -33,9 +39,21 @@ export default function App() {
             </PublicOnly>
           }
         />
+
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/library" element={<LibraryPage />} />
+          </Route>
         </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/admin" element={<AdminOverviewPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/books" element={<AdminBooksPage />} />
+          </Route>
+        </Route>
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthProvider>

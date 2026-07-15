@@ -160,36 +160,6 @@ body {
   text-decoration: none;
 }
 
-.dashboard-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, var(--auth-bg-start), var(--auth-bg-end));
-}
-
-.dashboard-card {
-  width: min(100%, 520px);
-  background: #fff;
-  border-radius: 18px;
-  padding: 2rem;
-  box-shadow: var(--auth-card-shadow);
-}
-
-.dashboard-card h1 {
-  margin-top: 0;
-}
-
-.dashboard-role {
-  color: var(--auth-muted);
-}
-
-.dashboard-logout {
-  margin-top: 1rem;
-  width: auto;
-  min-width: 120px;
-}
-
 @media (max-width: 640px) {
   .auth-illustration {
     display: none;

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../api/authApi';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { useAuth } from '../context/AuthContext';
+import { getHomeRoute } from '../utils/routing';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export function LoginPage() {
 
     if (result.success && result.data) {
       setUser(result.data);
-      navigate('/dashboard');
+      navigate(getHomeRoute(result.data.roles));
       return;
     }
 

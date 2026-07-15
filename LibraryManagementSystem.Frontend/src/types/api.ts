@@ -10,6 +10,20 @@ export interface ResponseDto<T> {
   errors?: ApiError[];
 }
 
+export interface PaginationResponse<T> {
+  data: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export enum ReadingStatus {
+  NotStarted = 0,
+  Reading = 1,
+  Completed = 2,
+}
+
 export interface LoginResponse {
   displayName: string;
   email: string;
@@ -30,4 +44,39 @@ export interface RegisterRequest {
   dateOfBirth: string;
   email: string;
   password: string;
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  genre: string;
+  status: ReadingStatus;
+}
+
+export interface CreateBookRequest {
+  title: string;
+  author: string;
+  genre: string;
+}
+
+export interface UpdateBookRequest extends CreateBookRequest {
+  status: ReadingStatus;
+}
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  email: string;
+  isActive: boolean;
+  roles: string[];
+  createdAt: string;
+}
+
+export interface UpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
 }
