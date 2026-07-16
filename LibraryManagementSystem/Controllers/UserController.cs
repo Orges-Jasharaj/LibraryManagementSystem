@@ -1,4 +1,5 @@
 ﻿using LibraryManagementSystem.Dtos.Requests;
+using LibraryManagementSystem.Dtos.Responses;
 using LibraryManagementSystem.Models;
 using LibraryManagementSystem.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ namespace LibraryManagementSystem.Controllers
         [Authorize(Roles = RoleTypes.Admin)]
         [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAllUsers(
-        [FromQuery] PaginationRequestDto request)
+        [FromQuery] UserListRequestDto request)
         {
             var result = await _userService.GetAllUsersAsync(
                 User,
@@ -32,6 +33,34 @@ namespace LibraryManagementSystem.Controllers
             return Ok(result);
         }
 
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Ok(ResponseDto<UserDto>.Failure("User is not authenticated."));
+            }
+
+            var result = await _userService.GetUserByIdAsync(userId);
+            return Ok(result);
+        }
+
+        [HttpPut("me")]
+        [Authorize]
+        public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateUserDto updateUserDto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Ok(ResponseDto<bool>.Failure("User is not authenticated."));
+            }
+
+            var result = await _userService.UpdateUserAsync(userId, updateUserDto);
+            return Ok(result);
+        }
 
         [HttpGet("{id}")]
         [Authorize(Roles = RoleTypes.Admin)]
@@ -58,6 +87,7 @@ namespace LibraryManagementSystem.Controllers
         }
 
         [HttpPost("changepassword")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;

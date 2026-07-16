@@ -41,6 +41,9 @@ export function DashboardLayout() {
               </NavLink>
             </>
           )}
+          <NavLink to="/profile" className="dash-nav-link">
+            My Account
+          </NavLink>
         </nav>
 
         <div className="dash-sidebar-footer">

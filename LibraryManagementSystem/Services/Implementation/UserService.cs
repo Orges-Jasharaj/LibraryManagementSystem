@@ -192,7 +192,7 @@ namespace LibraryManagementSystem.Services.Implementation
 
         public async Task<ResponseDto<PaginationResponseDto<UserDto>>> GetAllUsersAsync(
         ClaimsPrincipal? currentUser,
-        PaginationRequestDto request)
+        UserListRequestDto request)
         {
             try
             {
@@ -205,12 +205,43 @@ namespace LibraryManagementSystem.Services.Implementation
                     query = query.IgnoreQueryFilters();
                 }
 
+                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+                {
+                    var term = request.SearchTerm.Trim().ToLower();
+                    query = query.Where(u =>
+                        u.FirstName.ToLower().Contains(term) ||
+                        u.LastName.ToLower().Contains(term) ||
+                        (u.Email != null && u.Email.ToLower().Contains(term)));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Role))
+                {
+                    var role = request.Role.Trim();
+                    if (role is RoleTypes.Admin or RoleTypes.User)
+                    {
+                        query = query.Where(u =>
+                            _appDbContext.UserRoles
+                                .Join(
+                                    _appDbContext.Roles,
+                                    ur => ur.RoleId,
+                                    r => r.Id,
+                                    (ur, r) => new { ur.UserId, r.Name })
+                                .Any(x => x.UserId == u.Id && x.Name == role));
+                    }
+                }
 
                 var totalCount = await query.CountAsync();
 
+                var sortOldestFirst = string.Equals(
+                    request.SortOrder,
+                    "oldest",
+                    StringComparison.OrdinalIgnoreCase);
 
-                var usersList = await query
-                    .OrderBy(x => x.CreatedAt)
+                var orderedQuery = sortOldestFirst
+                    ? query.OrderBy(x => x.CreatedAt)
+                    : query.OrderByDescending(x => x.CreatedAt);
+
+                var usersList = await orderedQuery
                     .Skip((request.PageNumber - 1) * request.PageSize)
                     .Take(request.PageSize)
                     .ToListAsync();
@@ -429,7 +460,7 @@ namespace LibraryManagementSystem.Services.Implementation
         {
             try
             {
-                var allowedRoles = RoleTypes.Admin;
+                var allowedRoles = new[] { RoleTypes.Admin, RoleTypes.User };
 
                 if (!allowedRoles.Contains(role))
                 {

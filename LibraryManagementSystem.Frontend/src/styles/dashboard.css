@@ -27,6 +27,7 @@ body {
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
+  width: 100%;
 }
 
 .dash-sidebar {
@@ -131,11 +132,14 @@ body {
     radial-gradient(circle at 90% 10%, rgba(193, 127, 89, 0.08), transparent 40%),
     var(--paper);
   overflow-y: auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .dash-content {
   padding: 2rem 2.5rem 3rem;
-  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dash-header {
@@ -193,6 +197,44 @@ body {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.search-bar {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(193, 127, 89, 0.15);
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
 }
 
 .dash-toolbar label {
@@ -273,6 +315,10 @@ body {
   align-items: center;
 }
 
+.admin-user-form {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
 .dash-msg {
   padding: 0.65rem 1rem;
   border-radius: 8px;
@@ -295,10 +341,20 @@ body {
   padding: 2rem 0;
 }
 
+.list-area {
+  transition: opacity 0.15s ease;
+}
+
+.list-area.is-refreshing {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.25rem;
+  width: 100%;
 }
 
 .book-card {
@@ -390,6 +446,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
+  width: 100%;
 }
 
 .dash-table {
@@ -478,12 +535,57 @@ body {
   color: var(--accent);
 }
 
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  width: 100%;
+}
+
+.profile-panel {
+  margin-bottom: 0;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #4a4a63;
+}
+
+.profile-field input {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.profile-field input:disabled {
+  background: var(--paper-2);
+  color: var(--muted);
+}
+
+.profile-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
 @media (max-width: 900px) {
   .dash { grid-template-columns: 1fr; }
   .dash-sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .dash-nav { flex-direction: row; flex-wrap: wrap; }
   .dash-sidebar-footer { width: 100%; }
   .dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .profile-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {

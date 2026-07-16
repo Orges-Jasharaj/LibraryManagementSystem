@@ -6,9 +6,19 @@ import type {
   UpdateBookRequest,
 } from '../types/api';
 
-export async function getBooks(pageNumber = 1, pageSize = 8) {
+export type BookSortOrder = 'newest' | 'oldest';
+
+export async function getBooks(
+  pageNumber = 1,
+  pageSize = 8,
+  searchTerm = '',
+  sortOrder: BookSortOrder = 'newest',
+) {
+  const search = searchTerm.trim();
+  const searchQuery = search ? `&searchTerm=${encodeURIComponent(search)}` : '';
+  const sortQuery = `&sortOrder=${encodeURIComponent(sortOrder)}`;
   return apiRequest<PaginationResponse<Book>>(
-    `/book?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+    `/book?pageNumber=${pageNumber}&pageSize=${pageSize}${searchQuery}${sortQuery}`,
   );
 }
 

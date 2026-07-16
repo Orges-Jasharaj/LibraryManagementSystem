@@ -31,7 +31,7 @@ namespace LibraryManagementSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBooks([FromQuery] PaginationRequestDto request)
+        public async Task<IActionResult> GetBooks([FromQuery] BookListRequestDto request)
         {
             var result = await _bookService
                 .GetAllBooksAsync(request);

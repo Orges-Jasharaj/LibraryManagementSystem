@@ -7,7 +7,7 @@ namespace LibraryManagementSystem.Services.Interface
     {
         Task<ResponseDto<bool>> CreateBookAsync(CreateBookDto createBookDto);
         Task<ResponseDto<BookDto>> GetBookByIdAsync(Guid bookId);
-        Task<ResponseDto<PaginationResponseDto<BookDto>>> GetAllBooksAsync(PaginationRequestDto request);
+        Task<ResponseDto<PaginationResponseDto<BookDto>>> GetAllBooksAsync(BookListRequestDto request);
         Task<ResponseDto<bool>> UpdateBookAsync(Guid bookId, UpdateBookDto updateBookDto);
         Task<ResponseDto<bool>> DeleteBookAsync(Guid bookId);
     }

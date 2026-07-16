@@ -20,3 +20,10 @@ export async function register(data: RegisterRequest) {
     body: JSON.stringify(data),
   });
 }
+
+export async function registerUserWithRole(data: RegisterRequest, role: string) {
+  return apiRequest<boolean>(`/auth/registerUserWithRole?role=${role}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

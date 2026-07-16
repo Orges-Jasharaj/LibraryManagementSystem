@@ -13,7 +13,7 @@ namespace LibraryManagementSystem.Services.Interface
         Task<ResponseDto<UserDto>> GetUserByIdAsync(string userId);
         Task<ResponseDto<PaginationResponseDto<UserDto>>> GetAllUsersAsync(
             ClaimsPrincipal? currentUser,
-            PaginationRequestDto request);
+            UserListRequestDto request);
         Task<ResponseDto<bool>> DeleteUserAsync(string userId);
         Task<ResponseDto<bool>> ReactivateUserAsync(string userId);
         Task<ResponseDto<bool>> UpdateUserAsync(string userId, UpdateUserDto userDto);

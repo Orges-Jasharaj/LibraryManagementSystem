@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthenticatedRoute } from './components/layout/AuthenticatedRoute';
 import { AdminRoute } from './components/layout/AdminRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -7,6 +8,7 @@ import { AdminBooksPage } from './pages/admin/AdminBooksPage';
 import { AdminOverviewPage } from './pages/admin/AdminOverviewPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { LoginPage } from './pages/LoginPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
 import { LibraryPage } from './pages/user/LibraryPage';
 import { getHomeRoute } from './utils/routing';
@@ -51,6 +53,12 @@ export default function App() {
             <Route path="/admin" element={<AdminOverviewPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/books" element={<AdminBooksPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<AuthenticatedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 

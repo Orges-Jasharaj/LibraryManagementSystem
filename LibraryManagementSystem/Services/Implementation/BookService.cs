@@ -99,7 +99,7 @@ namespace LibraryManagementSystem.Services.Implementation
             }
         }
 
-        public async Task<ResponseDto<PaginationResponseDto<BookDto>>> GetAllBooksAsync(PaginationRequestDto request)
+        public async Task<ResponseDto<PaginationResponseDto<BookDto>>> GetAllBooksAsync(BookListRequestDto request)
         {
             try
             {
@@ -111,9 +111,27 @@ namespace LibraryManagementSystem.Services.Implementation
                     query = query.Where(b => b.UserId == userId);
                 }
 
+                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+                {
+                    var term = request.SearchTerm.Trim().ToLower();
+                    query = query.Where(b =>
+                        b.Title.ToLower().Contains(term) ||
+                        b.Author.ToLower().Contains(term) ||
+                        b.Genre.ToLower().Contains(term));
+                }
+
                 var totalCount = await query.CountAsync();
 
-                var books = await query
+                var sortOldestFirst = string.Equals(
+                    request.SortOrder,
+                    "oldest",
+                    StringComparison.OrdinalIgnoreCase);
+
+                var orderedQuery = sortOldestFirst
+                    ? query.OrderBy(b => b.CreatedAt)
+                    : query.OrderByDescending(b => b.CreatedAt);
+
+                var books = await orderedQuery
                     .Skip(
                         (request.PageNumber - 1) * request.PageSize)
                     .Take(request.PageSize)

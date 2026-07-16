@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createBook, deleteBook, getBooks, updateBook } from '../../api/bookApi';
 import { Pagination } from '../../components/Pagination';
+import { SearchBar } from '../../components/SearchBar';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import type { Book, ReadingStatus } from '../../types/api';
 import { genreColor, statusClass, statusLabels } from '../../utils/books';
-import { getPageAfterDelete, PAGE_SIZE } from '../../utils/pagination';
+import { getPageAfterDelete, BOOK_PAGE_SIZE } from '../../utils/pagination';
 
 const emptyForm = { title: '', author: '', genre: '', status: 0 as ReadingStatus };
 
@@ -17,13 +19,27 @@ export function LibraryPage() {
   const [showForm, setShowForm] = useState(false);
   const [genreFilter, setGenreFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 400);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  const loadBooks = async (page = pageNumber) => {
-    setLoading(true);
-    const result = await getBooks(page, PAGE_SIZE);
+  const loadBooks = async (
+    page = pageNumber,
+    term = debouncedSearch,
+    sort = sortOrder,
+  ) => {
+    if (!hasLoadedRef.current) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
+    const result = await getBooks(page, BOOK_PAGE_SIZE, term, sort);
     if (result.success && result.data) {
       setBooks(result.data.data);
       setPageNumber(result.data.pageNumber);
@@ -33,12 +49,25 @@ export function LibraryPage() {
     } else {
       setError(result.message ?? 'Failed to load books');
     }
+
+    hasLoadedRef.current = true;
     setLoading(false);
+    setRefreshing(false);
   };
 
   useEffect(() => {
-    void loadBooks(pageNumber);
-  }, [pageNumber]);
+    void loadBooks(pageNumber, debouncedSearch, sortOrder);
+  }, [pageNumber, debouncedSearch, sortOrder]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    setPageNumber(1);
+  };
+
+  const handleSortOrderChange = (value: 'newest' | 'oldest') => {
+    setSortOrder(value);
+    setPageNumber(1);
+  };
 
   const genres = useMemo(
     () => [...new Set(books.map((b) => b.genre))].sort(),
@@ -152,6 +181,11 @@ export function LibraryPage() {
       </section>
 
       <section className="dash-toolbar">
+        <SearchBar
+          value={searchInput}
+          onChange={handleSearchChange}
+          placeholder="Search by title, author or genre..."
+        />
         <label>
           Genre
           <select value={genreFilter} onChange={(e) => setGenreFilter(e.target.value)}>
@@ -168,6 +202,16 @@ export function LibraryPage() {
             <option value="0">Not Started</option>
             <option value="1">Reading</option>
             <option value="2">Completed</option>
+          </select>
+        </label>
+        <label>
+          Added
+          <select
+            value={sortOrder}
+            onChange={(e) => handleSortOrderChange(e.target.value as 'newest' | 'oldest')}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
           </select>
         </label>
       </section>
@@ -224,9 +268,11 @@ export function LibraryPage() {
       {loading ? (
         <p className="dash-empty">Loading your shelf...</p>
       ) : filtered.length === 0 ? (
-        <p className="dash-empty">No books found on this page.</p>
+        <p className="dash-empty">
+          {debouncedSearch ? 'No books match your search.' : 'No books found on this page.'}
+        </p>
       ) : (
-        <>
+        <div className={`list-area${refreshing ? ' is-refreshing' : ''}`}>
           <section className="book-grid">
             {filtered.map((book) => (
               <article key={book.id} className="book-card">
@@ -253,12 +299,12 @@ export function LibraryPage() {
           </section>
           <Pagination
             pageNumber={pageNumber}
-            pageSize={PAGE_SIZE}
+            pageSize={BOOK_PAGE_SIZE}
             totalCount={totalCount}
             totalPages={totalPages}
             onPageChange={setPageNumber}
           />
-        </>
+        </div>
       )}
     </div>
   );

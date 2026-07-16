@@ -80,3 +80,8 @@ export interface UpdateUserRequest {
   lastName: string;
   dateOfBirth: string;
 }
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
